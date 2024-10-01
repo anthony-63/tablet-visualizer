@@ -1,0 +1,8 @@
+[package]
+name = "tablet-visualizer"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+macroquad = "*"
+windows = {version = "*", features = ["Win32_UI_WindowsAndMessaging"]}
