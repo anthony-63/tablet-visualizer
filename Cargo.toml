@@ -6,3 +6,5 @@ edition = "2021"
 [dependencies]
 macroquad = "*"
 windows = {version = "*", features = ["Win32_UI_WindowsAndMessaging"]}
+toml = "*"
+serde = {version = "*", features = ["derive"]}

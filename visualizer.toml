@@ -1,0 +1,17 @@
+[cursor]
+image = false # use an image for the cursor
+image_path = "" # set to local path of image if using an image for the cursor
+color = [255,181,192,255] # rgba, modulates color of image if using one
+size = 24.0
+
+[background]
+color = [0, 255, 0, 255] # rgba, set to green screen by default
+screen_size = [1920, 1080] # width x height
+
+[trail]
+enabled = true
+decay_rate = 5.0 # amount at which the trail decays, bigger for shorter trails
+color = [177, 156, 215, 255] # rgba
+size = 18.0
+image = false # use an image for the trail
+image_path = "" # set to local path of image if using an image for the trail
