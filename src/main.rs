@@ -1,7 +1,7 @@
 use std::io::Read;
 
-use macroquad::{prelude::*, window};
-use miniquad::window::{screen_size, set_window_size};
+use macroquad::prelude::*;
+use miniquad::window::set_window_size;
 use serde::Deserialize;
 use windows::Win32::UI::WindowsAndMessaging::{GetCursorPos, GetSystemMetrics, SYSTEM_METRICS_INDEX};
 const SCALE: i32 = 2;
@@ -123,17 +123,24 @@ struct BackgroundConfig {
 
 #[macroquad::main(window_conf)]
 async fn main() {
+    let mut error = None;
     let config = match std::fs::File::open("visualizer.toml") {
         Ok(mut f) => {
             let mut s = String::new();
             f.read_to_string(&mut s).unwrap();
             match toml::from_str(&s) {
                 Ok(t) => t,
-                Err(_) => Config::default(), 
+                Err(e) => {
+                    error = Some(format!("Config Error, Using Default\nIssue: {:?}", e.message()));
+                    Config::default()
+                }, 
             }
 
         },
-        Err(_) => Config::default(),
+        Err(_) => {
+            error = Some(String::from("File Error, Using Default\nIssue: Failed to find visualizer.toml"));
+            Config::default()
+        },
     };
     set_window_size((config.background.screen_size[0] / SCALE) as u32, (config.background.screen_size[1] / SCALE) as u32);
     
@@ -163,6 +170,15 @@ async fn main() {
             trail.update();
             trail.draw();
         }
+        if error.is_some() {
+            let msgs = error.as_ref().unwrap().split("\n").map(|e| e.to_string() ).collect::<Vec<String>>();
+            let mut y = 30.;
+            for msg in msgs {
+                draw_text(msg.as_str(), 0., y, 30., RED);
+                y += 30.;
+            }
+        }
+
         if config.cursor.image && cursor_tex.is_some() {
             draw_texture_ex(&cursor_tex.as_ref().unwrap(), pos.0 - config.cursor.size / 2., pos.1 - config.cursor.size / 2., Color::from_rgba(config.cursor.color[0], config.cursor.color[1], config.cursor.color[2], config.cursor.color[3]), DrawTextureParams {
                 dest_size: Some(Vec2::new(config.cursor.size, config.cursor.size)),
