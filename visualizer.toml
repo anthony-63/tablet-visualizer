@@ -10,7 +10,8 @@ screen_size = [1920, 1080] # width x height
 
 [trail]
 enabled = true
-decay_rate = 5.0 # amount at which the trail decays, bigger for shorter trails
+fade = true # does the cursor trail fade out
+time = 0.2 # how long in the trail lasts until fully invisible in seconds
 color = [177, 156, 215, 255] # rgba
 size = 18.0
 image = false # use an image for the trail

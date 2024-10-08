@@ -20,20 +20,22 @@ fn window_conf() -> Conf {
 
 struct Trail {
     points: Vec<(f32, Vec2)>,
-    decay_rate: f32,
+    time: f32,
     color: Color,
     size: f32,
     is_image: bool,
+    fade: bool,
     tex: Option<Texture2D>,
 }
 
 impl Trail {
-    pub fn new(decay_rate: f32, color: Color, size: f32, is_image: bool, tex: Option<Texture2D>) -> Self {
+    pub fn new(time: f32, color: Color, size: f32, fade: bool, is_image: bool, tex: Option<Texture2D>) -> Self {
         return Self {
             points: vec![],
-            decay_rate,
+            time,
             color,
             size,
+            fade,
             is_image,
             tex,
         }
@@ -41,24 +43,29 @@ impl Trail {
 
     pub fn update(&mut self) {
         for point in self.points.iter_mut() {
-            point.0 -= self.decay_rate * get_frame_time();
+            point.0 -= get_frame_time();
         }
         self.points.retain(|&p| !(p.0 < 0.))
     }
 
     pub fn add_new(&mut self, x: f32, y: f32) {
-        self.points.push((1.0, Vec2::new(x, y)));
+        self.points.push((self.time, Vec2::new(x, y)));
     }
 
     pub fn draw(&self) {
         for point in self.points.iter() {
+            let color = if self.fade {
+                Color::new(self.color.r, self.color.g, self.color.b, self.color.a * (point.0 / self.time))
+            } else {
+                self.color
+            };
             if self.is_image && self.tex.is_some() {
-                draw_texture_ex(&self.tex.as_ref().unwrap(), point.1.x - self.size / 2., point.1.y - self.size / 2., self.color, DrawTextureParams {
+                draw_texture_ex(&self.tex.as_ref().unwrap(), point.1.x - self.size / 2., point.1.y - self.size / 2., color, DrawTextureParams {
                     dest_size: Some(Vec2::new(self.size, self.size)),
                     ..Default::default()
                 });
             } else {
-                draw_circle(point.1.x, point.1.y, self.size, self.color);
+                draw_circle(point.1.x, point.1.y, self.size, color);
             }
 
         }
@@ -86,10 +93,11 @@ impl Default for Config {
                 screen_size: [1920, 1080],
             },
             trail: TrailConfig {
-                decay_rate: 1.,
+                time: 1.,
                 image: false,
                 size: 2.,
                 enabled: true,
+                fade: true,
                 image_path: String::new(),
                 color: [255, 0, 0, 255]
             }
@@ -107,12 +115,13 @@ struct CursorConfig {
 
 #[derive(Deserialize)]
 struct TrailConfig {
-    decay_rate: f32,
+    time: f32,
     image: bool,
     color: [u8; 4],
     size: f32,
     image_path: String,
     enabled: bool,
+    fade: bool,
 }
 
 #[derive(Deserialize)]
@@ -156,7 +165,7 @@ async fn main() {
         None
     };
 
-    let mut trail = Trail::new(config.trail.decay_rate, Color::from_rgba(config.trail.color[0], config.trail.color[1], config.trail.color[2], config.trail.color[3]), config.trail.size, config.trail.image, image);
+    let mut trail = Trail::new(config.trail.time, Color::from_rgba(config.trail.color[0], config.trail.color[1], config.trail.color[2], config.trail.color[3]), config.trail.size, config.trail.fade, config.trail.image, image);
     loop {
         let mut cursor_pos: windows::Win32::Foundation::POINT = Default::default();
         unsafe{ GetCursorPos(&mut cursor_pos).unwrap() };
